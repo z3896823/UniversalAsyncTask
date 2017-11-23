@@ -27,6 +27,14 @@ public class DataProvider {
     private DataProvider() {
     }
 
+    /**
+     * 初始化DataProvider
+     * 一般来讲调用同一个WebService的话WSDL和namespace的值是不变的，所以这里设置成静态，免去多次传值的麻烦
+     * 如果一个应用中调用了多个WebService，每次调用不同的WebService时请重新初始化这两个变量
+     *
+     * @param WSDL
+     * @param namespace
+     */
     public static void initial(String WSDL, String namespace) {
         DataProvider.WSDL = WSDL;
         DataProvider.namespace = namespace;
@@ -44,13 +52,19 @@ public class DataProvider {
         return instance;
     }
 
-    public void execute(String methodName, @Nullable Map<String, String> valueMap, Class c, OnResultListener listener) {
+    /**
+     * 执行请求
+     *
+     * @param methodName 调用的方法名
+     * @param valueMap 该方法需要哪些参数（无参方法直接传null）
+     * @param c 希望返回什么对象（返回标志位的话直接传null）
+     * @param listener 返回的结果在哪里接收
+     */
+    public void execute(String methodName, @Nullable Map<String, String> valueMap, @Nullable Class c, OnResultListener listener) {
         if (WSDL == null || namespace == null) {
             Logger.e(this, "WSDL or namespace cannot be null! Please call initial() to initialize DataProvider first.");
             return;
         }
-
         new UniversalTask(WSDL, namespace, methodName, listener, valueMap, c).execute();
     }
-
 }

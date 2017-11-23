@@ -8,16 +8,26 @@
     tools:context="sysu.evteam.zyb.universalasynctask.MainActivity">
 
     <Button
-        android:id="@+id/id_btn_list"
+        android:id="@+id/id_btn_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="请求对象数据"/>
+        android:text="无参，返回对象列表"/>
 
     <Button
-        android:id="@+id/id_btn_single"
+        android:id="@+id/id_btn_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="请求标志位数据"/>
+        android:text="无参，返回标志位"/>
+    <Button
+        android:id="@+id/id_btn_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="有参，返回对象列表"/>
+    <Button
+        android:id="@+id/id_btn_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="有参，返回标志位"/>
 
     <TextView
         android:id="@+id/id_tv_result"
