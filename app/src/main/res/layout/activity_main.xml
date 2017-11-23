@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="sysu.evteam.zyb.universalasynctask.MainActivity">
+
+    <Button
+        android:id="@+id/id_btn_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="请求对象数据"/>
+
+    <Button
+        android:id="@+id/id_btn_single"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="请求标志位数据"/>
+
+    <TextView
+        android:id="@+id/id_tv_result"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+
+</LinearLayout>
