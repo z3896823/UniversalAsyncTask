@@ -58,21 +58,14 @@ public class MainActivity extends AppCompatActivity {
         Logger.d(this, "UniversalTaskTest-test1()");
 
         final StringBuilder sb = new StringBuilder();
-        DataProvider.getInstance().execute("getUserList", null, User.class, new OnResultListener() {
+        new DataProvider<User>().execute("getUserList", null, new ResultListener<User>() {
             @Override
-            public void onResult(List<Object> resultList) {
-                // 做个安全判断
-                if (resultList.get(0) instanceof User) {
-                    User user;
-                    for (Object o : resultList) {
-                        user = (User) o;
-                        sb.append(user.toString()+"\n");
-                    }
-                } else {
-                    sb.append("无法识别收到的数据");
+            public void onResult(List<User> resultList) {
+                for (User user : resultList){
+                    sb.append(user.toString());
+                    sb.append("\n");
                 }
                 textView.setText(sb.toString());
-                Logger.d(this,sb.toString());
             }
         });
     }
@@ -80,18 +73,10 @@ public class MainActivity extends AppCompatActivity {
     public void test2(final TextView textView) {
         Logger.d(this, "UniversalTaskTest-test2()");
 
-        final StringBuilder sb = new StringBuilder();
-        DataProvider.getInstance().execute("HelloWorld", null, null, new OnResultListener() {
+        new DataProvider<String>().execute("HelloWorld", null, new ResultListener<String>() {
             @Override
-            public void onResult(List<Object> resultList) {
-                // 做个安全判断
-                if (resultList.get(0) instanceof String){
-                    sb.append(resultList.get(0).toString());
-                } else {
-                    sb.append("无法识别收到的数据");
-                }
-                textView.setText(sb.toString());
-                Logger.d(this,sb.toString());
+            public void onResult(List<String> resultList) {
+                textView.setText(resultList.get(0));
             }
         });
     }
@@ -103,21 +88,14 @@ public class MainActivity extends AppCompatActivity {
         final StringBuilder sb = new StringBuilder();
         Map<String,String> valueMap = new HashMap<>(1);
         valueMap.put("name","邹渊博");
-        DataProvider.getInstance().execute("getEventByName", valueMap, Event.class, new OnResultListener() {
+        new DataProvider<Event>().execute("getEventByName", valueMap, new ResultListener<Event>() {
             @Override
-            public void onResult(List<Object> resultList) {
-                // 做个安全判断
-                if (resultList.get(0) instanceof Event) {
-                    Event e;
-                    for (Object o : resultList) {
-                        e = (Event) o;
-                        sb.append(e.toString()+"\n");
-                    }
-                } else {
-                    sb.append("无法识别收到的数据");
+            public void onResult(List<Event> resultList) {
+                for (Event event : resultList){
+                    sb.append(event.toString());
+                    sb.append("\n");
                 }
                 textView.setText(sb.toString());
-                Logger.d(this,sb.toString());
             }
         });
     }
@@ -126,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
     public void test4(final TextView textView) {
         Logger.d(this, "UniversalTaskTest-test2()");
 
-        final StringBuilder sb = new StringBuilder();
         Map<String,String> valueMap = new HashMap<>(7);
         valueMap.put("name","邹渊博");
         valueMap.put("status","LEVEL_SOFTWARELEADER");
@@ -134,18 +111,11 @@ public class MainActivity extends AppCompatActivity {
         valueMap.put("begin","2017-11-23");
         valueMap.put("end","2017-11-25");
         valueMap.put("days","2");
-        valueMap.put("remark","封装库测试");
-        DataProvider.getInstance().execute("addEvent", valueMap, null, new OnResultListener() {
+        valueMap.put("remark","封装库测试0.2");
+        new DataProvider<String>().execute("addEvent", valueMap, new ResultListener<String>() {
             @Override
-            public void onResult(List<Object> resultList) {
-                // 做个安全判断
-                if (resultList.get(0) instanceof String){
-                    sb.append(resultList.get(0).toString());
-                } else {
-                    sb.append("无法识别收到的数据");
-                }
-                textView.setText(sb.toString());
-                Logger.d(this,sb.toString());
+            public void onResult(List<String> resultList) {
+                textView.setText(resultList.get(0));
             }
         });
     }

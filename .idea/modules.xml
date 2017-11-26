@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/UniversalAsyncTask.iml" filepath="$PROJECT_DIR$/UniversalAsyncTask.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/universalasynctasklibrary/universalasynctask.iml" filepath="$PROJECT_DIR$/universalasynctasklibrary/universalasynctask.iml" />
+      <module fileurl="file://$PROJECT_DIR$/universalasynctasklibrary/universalasynctasklibrary.iml" filepath="$PROJECT_DIR$/universalasynctasklibrary/universalasynctasklibrary.iml" />
     </modules>
   </component>
 </project>

@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * <pre>
  *     @author: zyb
@@ -27,17 +28,17 @@ import java.util.Map;
  * </pre>
  */
 
-public class UniversalTask extends AsyncTask<Void, Void, List<Object>> {
+public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
 
     private String WSDL, namespace, methodName;
 
     private Class c;
     private boolean flag = true;
 
-    private OnResultListener listener;
+    private ResultListener listener;
     private Map<String, String> valueMap;
 
-    public UniversalTask(String WSDL, String namespace, String methodName, OnResultListener listener,
+    public UniversalTask(String WSDL, String namespace, String methodName, ResultListener<T> listener,
                          Map<String, String> valueMap, Class c) {
         super();
         this.WSDL = WSDL;
@@ -73,6 +74,13 @@ public class UniversalTask extends AsyncTask<Void, Void, List<Object>> {
             transportSE.call(namespace + methodName, envelope);
             SoapObject resultObj = (SoapObject) envelope.bodyIn;
             if (isList(resultObj)) {
+                double begin = System.currentTimeMillis();
+
+                // 将根据泛型参数获得的结果类型和根据SoapObject解析的结果类型做比较，进行安全检查
+                if (c.getName().equals(String.class.getName())){
+                    android.util.Log.e("UniversalTask", "结果解析与结果预期不同，请检查返回的结果是否为String类型的标志位" );
+                    return null;
+                }
                 SoapObject tempObj = (SoapObject) envelope.getResponse();//包含了所有的对象
                 SoapObject temp;//包含单个对象的SoapObject
                 List<String> attributes = new ArrayList<>();// 一个容器，用来保存提取的某对象的属性
@@ -87,6 +95,8 @@ public class UniversalTask extends AsyncTask<Void, Void, List<Object>> {
                     }
                     resultList.add(generateObject(attributes));
                 }
+
+                Logger.d(this,"反射解析耗时（ms）："+(System.currentTimeMillis()-begin));
             } else {
                 String result = resultObj.getProperty(0).toString();
                 resultList.add(result);
@@ -110,7 +120,7 @@ public class UniversalTask extends AsyncTask<Void, Void, List<Object>> {
      * @return true if resultObj contains a List of Object
      */
     private boolean isList(SoapObject resultObj) {
-        Logger.d(this, "true or false :" + (resultObj.getProperty(0) instanceof SoapObject));
+        Logger.d(this, "返回值为对象列表？" + (resultObj.getProperty(0) instanceof SoapObject));
         return resultObj.getProperty(0) instanceof SoapObject;
     }
 
@@ -120,7 +130,7 @@ public class UniversalTask extends AsyncTask<Void, Void, List<Object>> {
      * @param attributes attributes list
      * @return an object generated with elements
      */
-    private Object generateObject(List<String> attributes) {
+    private T generateObject(List<String> attributes) {
 
         Method[] methods = c.getMethods();
         List<Method> annotationMethodList = new ArrayList<>();
@@ -177,6 +187,6 @@ public class UniversalTask extends AsyncTask<Void, Void, List<Object>> {
             }
         }
 
-        return o;
+        return (T) o;
     }
 }

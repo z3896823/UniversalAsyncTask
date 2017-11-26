@@ -3,6 +3,8 @@ package sysu.evteam.zyb.universalasynctask;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +16,7 @@ import java.util.Map;
  *         version: 1.0
  */
 
-public class DataProvider {
+public class DataProvider<T> {
 
     private static DataProvider instance;
 
@@ -23,8 +25,7 @@ public class DataProvider {
     private static String WSDL;
     private static String namespace;
 
-
-    private DataProvider() {
+    public DataProvider() {
     }
 
     /**
@@ -57,14 +58,34 @@ public class DataProvider {
      *
      * @param methodName 调用的方法名
      * @param valueMap 该方法需要哪些参数（无参方法直接传null）
-     * @param c 希望返回什么对象（返回标志位的话直接传null）
      * @param listener 返回的结果在哪里接收
      */
-    public void execute(String methodName, @Nullable Map<String, String> valueMap, @Nullable Class c, OnResultListener listener) {
+    public void execute(String methodName, @Nullable Map<String, String> valueMap, ResultListener<T> listener) {
         if (WSDL == null || namespace == null) {
             Logger.e(this, "WSDL or namespace cannot be null! Please call initial() to initialize DataProvider first.");
             return;
         }
-        new UniversalTask(WSDL, namespace, methodName, listener, valueMap, c).execute();
+
+        Class clazz = getResultType(listener);
+        Logger.d(this,"监听的泛型类型为"+clazz.getName());
+
+        // 必须要显式声明异步任务的泛型对象，以下两行代码不可合成一行
+        UniversalTask<T> task = new UniversalTask(WSDL, namespace, methodName, listener, valueMap, clazz);
+        task.execute();
+    }
+
+    /**
+     * 从listener中抽取泛型类型
+     *
+     * @param listener 回调接口
+     * @return 获得的泛型类型
+     */
+    private Class getResultType(ResultListener listener){
+        // 获得监听器实现的接口
+        Type type = listener.getClass().getGenericInterfaces()[0];
+        // 对监听器接口转型成参数化类型，并获得其中的泛型类型
+        Type resultType = ((ParameterizedType)type).getActualTypeArguments()[0];
+        // 将泛型类型转型成Class后返回
+        return (Class) resultType;
     }
 }

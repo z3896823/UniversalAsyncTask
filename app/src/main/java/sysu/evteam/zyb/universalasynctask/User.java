@@ -85,7 +85,7 @@ public class User {
 
     @Override
     public String toString() {
-        return super.toString() + "[" + name + "psw:"+password +"tel:"+ tel + "]";
+        return super.toString() + "[" + name + " psw:" + password + " tel:" + tel + " level:" + level + "]";
     }
 
 }
