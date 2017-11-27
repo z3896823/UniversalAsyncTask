@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DataProvider.initial("http://39.108.72.65:81/schedulepro.asmx", "http://tempuri.org/");
+        DataProvider.initial("http://xx.xx.72.65:81/schedulepro.asmx", "http://tempuri.org/");
 
         Button btn_1 = findViewById(R.id.id_btn_1);// 无参，返回对象列表
         Button btn_2 = findViewById(R.id.id_btn_2);// 无参，返回标志位
