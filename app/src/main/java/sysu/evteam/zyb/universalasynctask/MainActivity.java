@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DataProvider.initial("http://xx.xx.72.65:81/schedulepro.asmx", "http://tempuri.org/");
+        DataProvider.initial("http://39.108.72.65:82/schedulepro.asmx", "http://tempuri.org/");
 
         Button btn_1 = findViewById(R.id.id_btn_1);// 无参，返回对象列表
         Button btn_2 = findViewById(R.id.id_btn_2);// 无参，返回标志位
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         Logger.d(this, "UniversalTaskTest-test1()");
 
         final StringBuilder sb = new StringBuilder();
-        new DataProvider<User>().execute("getUserList", null, new ResultListener<User>() {
+        new DataProvider<User>().query("getUserList", null, new ResultListener<User>() {
             @Override
             public void onResult(List<User> resultList) {
                 for (User user : resultList){
@@ -67,18 +67,18 @@ public class MainActivity extends AppCompatActivity {
                 }
                 textView.setText(sb.toString());
             }
-        });
+        },null);
     }
 
     public void test2(final TextView textView) {
         Logger.d(this, "UniversalTaskTest-test2()");
 
-        new DataProvider<String>().execute("HelloWorld", null, new ResultListener<String>() {
+        new DataProvider<String>().query("HelloWorld", null, new ResultListener<String>() {
             @Override
             public void onResult(List<String> resultList) {
                 textView.setText(resultList.get(0));
             }
-        });
+        },null);
     }
 
 
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         final StringBuilder sb = new StringBuilder();
         Map<String,String> valueMap = new HashMap<>(1);
         valueMap.put("name","邹渊博");
-        new DataProvider<Event>().execute("getEventByName", valueMap, new ResultListener<Event>() {
+        new DataProvider<Event>().query("getEventByName", valueMap, new ResultListener<Event>() {
             @Override
             public void onResult(List<Event> resultList) {
                 for (Event event : resultList){
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 textView.setText(sb.toString());
             }
-        });
+        },null);
     }
 
 
@@ -112,11 +112,11 @@ public class MainActivity extends AppCompatActivity {
         valueMap.put("end","2017-11-25");
         valueMap.put("days","2");
         valueMap.put("remark","封装库测试0.2");
-        new DataProvider<String>().execute("addEvent", valueMap, new ResultListener<String>() {
+        new DataProvider<String>().query("addEvent", valueMap, new ResultListener<String>() {
             @Override
             public void onResult(List<String> resultList) {
                 textView.setText(resultList.get(0));
             }
-        });
+        },null);
     }
 }

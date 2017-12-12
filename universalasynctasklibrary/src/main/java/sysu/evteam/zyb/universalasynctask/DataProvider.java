@@ -3,6 +3,8 @@ package sysu.evteam.zyb.universalasynctask;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 
+import org.kxml2.kdom.Element;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -19,8 +21,6 @@ import java.util.Map;
 public class DataProvider<T> {
 
     private static DataProvider instance;
-
-    private List<AsyncTask> taskList;
 
     private static String WSDL;
     private static String namespace;
@@ -42,25 +42,13 @@ public class DataProvider<T> {
     }
 
     /**
-     * 返回单例
-     *
-     * @return a instance
-     */
-    public static DataProvider getInstance() {
-        if (instance == null) {
-            instance = new DataProvider();
-        }
-        return instance;
-    }
-
-    /**
      * 执行请求
      *
      * @param methodName 调用的方法名
      * @param valueMap 该方法需要哪些参数（无参方法直接传null）
      * @param listener 返回的结果在哪里接收
      */
-    public void execute(String methodName, @Nullable Map<String, String> valueMap, ResultListener<T> listener) {
+    public void query(String methodName, @Nullable Map<String, String> valueMap, ResultListener<T> listener, Element[] soapHeader) {
         if (WSDL == null || namespace == null) {
             Logger.e(this, "WSDL or namespace cannot be null! Please call initial() to initialize DataProvider first.");
             return;
@@ -70,8 +58,8 @@ public class DataProvider<T> {
         Logger.d(this,"监听的泛型类型为"+clazz.getName());
 
         // 必须要显式声明异步任务的泛型对象，以下两行代码不可合成一行
-        UniversalTask<T> task = new UniversalTask(WSDL, namespace, methodName, listener, valueMap, clazz);
-        task.execute();
+        UniversalTask<T> task = new UniversalTask(WSDL, namespace, methodName, listener, valueMap, clazz, soapHeader);
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);// 使用并发数为5的线程池
     }
 
     /**

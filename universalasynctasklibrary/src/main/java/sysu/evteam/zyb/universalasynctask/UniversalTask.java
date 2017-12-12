@@ -6,6 +6,7 @@ import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
+import org.kxml2.kdom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ import java.util.Map;
 public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
 
     private String WSDL, namespace, methodName;
+    private Element[] soapHeader;
 
     private Class c;
     private boolean flag = true;
@@ -39,7 +41,7 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
     private Map<String, String> valueMap;
 
     public UniversalTask(String WSDL, String namespace, String methodName, ResultListener<T> listener,
-                         Map<String, String> valueMap, Class c) {
+                         Map<String, String> valueMap, Class c, Element[] soapHeader) {
         super();
         this.WSDL = WSDL;
         this.namespace = namespace;
@@ -47,6 +49,7 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
         this.listener = listener;
         this.valueMap = valueMap;
         this.c = c;
+        this.soapHeader = soapHeader;
     }
 
     // 如果是个标志，返回的List只包含一个String对象
@@ -68,6 +71,9 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER12);
         envelope.dotNet = true;
         envelope.bodyOut = requestObj;
+        if (soapHeader != null){
+            envelope.headerOut = soapHeader;
+        }
 
         HttpTransportSE transportSE = new HttpTransportSE(WSDL);
         try {
@@ -111,6 +117,7 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
     @Override
     protected void onPostExecute(List<Object> objects) {
         listener.onResult(objects);
+        listener = null;
     }
 
     /**
