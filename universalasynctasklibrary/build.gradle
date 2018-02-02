@@ -35,4 +35,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     compile 'com.google.code.ksoap2-android:ksoap2-android-assembly:3.6.2'
+    compile 'org.greenrobot:eventbus:3.1.1'
 }

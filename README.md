@@ -26,6 +26,29 @@
 
 > [异步任务线程管理机制](http://blog.csdn.net/hitlion2008/article/details/7983449)
 
+
+
+### 导入方法
+
+1. build.gradle(project)
+
+```groovy
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://jitpack.io' }
+        maven { url 'https://oss.sonatype.org/content/repositories/ksoap2-android-releases' }
+    }
+}
+```
+
+2. build.gradle(module)
+
+```groovy
+    compile 'com.github.z3896823:UniversalAsyncTask:v0.1'
+```
+
 ### 使用范例
 
 1. JavaBean：
@@ -91,7 +114,11 @@ public class User {
 2. MainActivity.java
 
 ```java
-    public void test1(final TextView textView) {
+    
+
+DataProvider.initial("WSDL","namespace");
+
+public void test1(final TextView textView) {
         Logger.d(this, "UniversalTaskTest-test1()");
 
         final StringBuilder sb = new StringBuilder();

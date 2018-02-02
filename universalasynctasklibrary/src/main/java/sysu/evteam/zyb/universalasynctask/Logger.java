@@ -14,15 +14,23 @@ import android.util.Log;
 
 public class Logger {
 
+    private static boolean isDebug = true;
+
     public static void d(Object o, String info){
-        Log.d("ybz-UniversalTask", o.getClass().getSimpleName()+"--->"+info);
+        if (isDebug) {
+            Log.d("ybz-UniversalTask", o.getClass().getSimpleName()+"--->"+info);
+        }
     }
 
     public static void d(String o, String info){
-        Log.d("ybz-UniversalTask", o.getClass().getSimpleName()+"--->"+info);
+        if (isDebug) {
+            Log.d("ybz-UniversalTask", o.getClass().getSimpleName()+"--->"+info);
+        }
     }
 
     public static void e(Object o, String info){
-        Log.e("ybz-UniversalTask", o.getClass().getSimpleName()+"--->"+info);
+        if (isDebug) {
+            Log.e("ybz-UniversalTask", o.getClass().getSimpleName()+"--->"+info);
+        }
     }
 }

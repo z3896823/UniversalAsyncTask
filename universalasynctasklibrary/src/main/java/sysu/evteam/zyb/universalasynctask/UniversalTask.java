@@ -2,6 +2,7 @@ package sysu.evteam.zyb.universalasynctask;
 
 import android.os.AsyncTask;
 
+import org.greenrobot.eventbus.EventBus;
 import org.ksoap2.SoapEnvelope;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
@@ -18,18 +19,21 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import sysu.evteam.zyb.universalasynctask.data.ListData;
+
 
 /**
  * <pre>
  *     @author: zyb
  *     email  : hbdxzyb@hotmail.com
  *     time   : 2017/11/20 上午10:46
- *     desc   :
+ *     desc   : 缺陷之一：每个对象都是反射生成的，只不过每次反射的参数不同，有没有什么办法可以反射一次生成一个空对象，
+ *     然后对这个空对象进行多次复制利用呢？
  *     version: 1.0
  * </pre>
  */
 
-public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
+public class UniversalTask<T> extends AsyncTask<Void, Void, List<T>> {
 
     private String WSDL, namespace, methodName;
     private Element[] soapHeader;
@@ -37,10 +41,15 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
     private Class c;
     private boolean flag = true;
 
-    private ResultListener listener;
+    private ResultListener<T> listener;
     private Map<String, String> valueMap;
 
-    public UniversalTask(String WSDL, String namespace, String methodName, ResultListener<T> listener,
+    private String dataTag;
+
+    /**
+     * 使用回调来获取结果
+     */
+    UniversalTask(String WSDL, String namespace, String methodName, ResultListener<T> listener,
                          Map<String, String> valueMap, Class c, Element[] soapHeader) {
         super();
         this.WSDL = WSDL;
@@ -52,13 +61,39 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
         this.soapHeader = soapHeader;
     }
 
-    // 如果是个标志，返回的List只包含一个String对象
-    // 如果是对象，不管是单数还是复数，全部封装在List中返回
-    @Override
-    protected List<Object> doInBackground(Void... voids) {
-        Logger.d(this, "异步任务启动");
+    /**
+     * 使用 EventBus 来获取结果
+     */
+    UniversalTask(String WSDL, String namespace,String methodName,Map<String,String> valueMap, Class c,Element[] soapHeader,String dataTag){
+        this.WSDL = WSDL;
+        this.namespace = namespace;
+        this.methodName = methodName;
+        this.valueMap = valueMap;
+        this.c = c;
+        this.soapHeader = soapHeader;
+        this.dataTag = dataTag;
+    }
 
-        List<Object> resultList = new ArrayList<>();
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        Logger.d(this, "异步任务启动, onPreExecute() executed");
+    }
+
+
+    /**
+     * WebService 返回的多数据分两种
+     * 一种是一个或多个对象，一种是单个的标志位，两种不同的数据会生成不同的 SoapObject，这一点调用方最好事先知道
+     * 虽然这里的判断不需要调用方参与（使用 isList()方法实现）
+     * 对于第一种，生成一个 List 对象返回，比如 List<User>
+     * 对于第二种，生成一个List<String>，里面只有一个值
+     *
+     * @param voids webService的参数直接通过构造函数传到对象中来，所以 doInBackground 的参数为 Void
+     * @return List<T> 包含结果对象的 List
+     */
+    @Override
+    protected List<T> doInBackground(Void... voids) {
+        List<T> resultList = new ArrayList<>();
 
         SoapObject requestObj = new SoapObject(namespace, methodName);
         if (valueMap != null) {
@@ -71,8 +106,12 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
         SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER12);
         envelope.dotNet = true;
         envelope.bodyOut = requestObj;
-        if (soapHeader != null){
+        if (soapHeader != null) {
             envelope.headerOut = soapHeader;
+        }
+
+        if (isCancelled()) {
+            return null;
         }
 
         HttpTransportSE transportSE = new HttpTransportSE(WSDL);
@@ -83,8 +122,8 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
                 double begin = System.currentTimeMillis();
 
                 // 将根据泛型参数获得的结果类型和根据SoapObject解析的结果类型做比较，进行安全检查
-                if (c.getName().equals(String.class.getName())){
-                    android.util.Log.e("UniversalTask", "结果解析与结果预期不同，请检查返回的结果是否为String类型的标志位" );
+                if (c.getName().equals(String.class.getName())) {
+                    android.util.Log.e("UniversalTask", "结果解析与结果预期不同，请检查返回的结果是否为String类型的标志位");
                     return null;
                 }
                 SoapObject tempObj = (SoapObject) envelope.getResponse();//包含了所有的对象
@@ -92,20 +131,32 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
                 List<String> attributes = new ArrayList<>();// 一个容器，用来保存提取的某对象的属性
                 int objCount = tempObj.getPropertyCount();//包含的对象个数
                 int propertyCount = ((SoapObject) tempObj.getProperty(0)).getPropertyCount();//对象的属性个数
+
+                if (isCancelled()) {
+                    return null;
+                }
+
                 for (int i = 0; i < objCount; i++) {
+
+                    if (isCancelled()) {
+                        return null;
+                    }
+
                     temp = (SoapObject) tempObj.getProperty(i);
                     attributes.clear();
-                    // 提取对象的属性到一个List中
+                    // 提取从网络获得的对象属性到一个List中
                     for (int j = 0; j < propertyCount; j++) {
                         attributes.add(temp.getProperty(j).toString());
                     }
-                    resultList.add(generateObject(attributes));
+                    resultList.add(generateObject(attributes,false));
                 }
 
-                Logger.d(this,"反射解析耗时（ms）："+(System.currentTimeMillis()-begin));
+                Logger.d(this, objCount + "个对象的反射解析耗时（ms）：" + (System.currentTimeMillis() - begin));
             } else {
                 String result = resultObj.getProperty(0).toString();
-                resultList.add(result);
+                List<String> a = new ArrayList<>();
+                a.add(result);
+                resultList.add(generateObject(a,true));
             }
         } catch (IOException | XmlPullParserException e) {
             e.printStackTrace();
@@ -113,11 +164,28 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
         return resultList;
     }
 
-
     @Override
-    protected void onPostExecute(List<Object> objects) {
-        listener.onResult(objects);
+    protected void onCancelled(List<T> objects) {
+        Logger.d(this, "task has been cancelled");
         listener = null;
+    }
+
+    /**
+     * 由于生成的对象总是List<Object>，所以如果使用 EventBus 发布的话，每个 subscriber 都会收到消息
+     * 所以这里使用 ListData 对数据做一层封装
+     * @param objects
+     */
+    @Override
+    protected void onPostExecute(List<T> objects) {
+        if (listener == null) {
+            ListData<T> listData = new ListData<>();
+            listData.setDataList(objects);
+            listData.setTag(dataTag);
+            EventBus.getDefault().post(listData);
+        } else {
+            listener.onResult(objects);
+            listener = null;
+        }
     }
 
     /**
@@ -132,12 +200,18 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
     }
 
     /**
+     * **核心代码**
+     * <p>
      * 根据传入的List<String>使用反射生成一个对象返回
      *
      * @param attributes attributes list
+     * @param isString true if T = String
      * @return an object generated with elements
      */
-    private T generateObject(List<String> attributes) {
+    private T generateObject(List<String> attributes,boolean isString) {
+        if (isString){
+            return (T) attributes.get(0);
+        }
 
         Method[] methods = c.getMethods();
         List<Method> annotationMethodList = new ArrayList<>();
@@ -168,8 +242,8 @@ public class UniversalTask<T> extends AsyncTask<Void, Void, List<Object>> {
         }
         // 输出排序好的方法（仅作调试用）
         if (flag) {
-            for (Method method : annotationMethodList){
-                Logger.d(this,method.getName());
+            for (Method method : annotationMethodList) {
+                Logger.d(this, method.getName());
             }
             flag = false;
         }

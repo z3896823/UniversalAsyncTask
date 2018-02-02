@@ -6,24 +6,35 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import sysu.evteam.zyb.universalasynctask.data.ListData;
+
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG_USER_LIST = "a";
+    private static final String TAG_HELLO_WORLD = "b";
+
+    private TextView tv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DataProvider.initial("http://39.108.72.65:82/schedulepro.asmx", "http://tempuri.org/");
+        DataProvider.initial("http://120.24.17.120:84/schedulepro.asmx", "http://tempuri.org/");
 
         Button btn_1 = findViewById(R.id.id_btn_1);// 无参，返回对象列表
         Button btn_2 = findViewById(R.id.id_btn_2);// 无参，返回标志位
         Button btn_3 = findViewById(R.id.id_btn_3);// 有参，返回对象列表
         Button btn_4 = findViewById(R.id.id_btn_4);// 有参，返回标志位
-        final TextView tv = findViewById(R.id.id_tv_result);
+        tv = findViewById(R.id.id_tv_result);
 
         btn_1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 textView.setText(sb.toString());
             }
-        },null);
+        },SoapHeaderUtil.getHeader());
     }
 
     public void test2(final TextView textView) {
@@ -78,45 +89,48 @@ public class MainActivity extends AppCompatActivity {
             public void onResult(List<String> resultList) {
                 textView.setText(resultList.get(0));
             }
-        },null);
+        },SoapHeaderUtil.getHeader());
     }
-
 
     public void test3(final TextView textView) {
-        Logger.d(this, "UniversalTaskTest-test2()");
-
-        final StringBuilder sb = new StringBuilder();
-        Map<String,String> valueMap = new HashMap<>(1);
-        valueMap.put("name","邹渊博");
-        new DataProvider<Event>().query("getEventByName", valueMap, new ResultListener<Event>() {
-            @Override
-            public void onResult(List<Event> resultList) {
-                for (Event event : resultList){
-                    sb.append(event.toString());
-                    sb.append("\n");
-                }
-                textView.setText(sb.toString());
-            }
-        },null);
+        Logger.d(this, "UniversalTaskTest-test3()");
+        new DataProvider<User>().query("getUserList", null, User.class,SoapHeaderUtil.getHeader(),TAG_USER_LIST);
     }
 
-
     public void test4(final TextView textView) {
-        Logger.d(this, "UniversalTaskTest-test2()");
+        Logger.d(this, "UniversalTaskTest-test4()");
+        new DataProvider<String>().query("HelloWorld", null, String.class, SoapHeaderUtil.getHeader(),TAG_HELLO_WORLD);
+    }
 
-        Map<String,String> valueMap = new HashMap<>(7);
-        valueMap.put("name","邹渊博");
-        valueMap.put("status","LEVEL_SOFTWARELEADER");
-        valueMap.put("type","事假");
-        valueMap.put("begin","2017-11-23");
-        valueMap.put("end","2017-11-25");
-        valueMap.put("days","2");
-        valueMap.put("remark","封装库测试0.2");
-        new DataProvider<String>().query("addEvent", valueMap, new ResultListener<String>() {
-            @Override
-            public void onResult(List<String> resultList) {
-                textView.setText(resultList.get(0));
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onUserList(ListData<User> reuslt){
+        if (reuslt.getTag().equals(TAG_USER_LIST)){
+            StringBuilder sb = new StringBuilder();
+            List<User> userList = reuslt.getDataList();
+            for (User user : userList){
+                sb.append(user.toString());
+                sb.append("\n");
             }
-        },null);
+            tv.setText(sb.toString());
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onHelloWorld(ListData<String> reuslt){
+        if (reuslt.getTag().equals(TAG_HELLO_WORLD)){
+            tv.setText(reuslt.getDataList().get(0));
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 }
